@@ -4,7 +4,7 @@ import App from './App'
 
 async function enableMocking() {
   const { worker } = await import('./mocks/browser');
-  return worker.start({ onUnhandledRequest: 'bypass' }); // TODO: Figure out why there's a ts error with the code provided here from appendix a.
+  return worker.start({ onUnhandledFrame: 'bypass' });
 }
 
 enableMocking().then(() => {

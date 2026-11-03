@@ -33,6 +33,7 @@ const GlobalStyle = createGlobalStyle`
   }
   body {
     line-height: 1;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
   ol, ul {
     list-style: none;

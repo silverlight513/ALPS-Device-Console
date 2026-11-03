@@ -2,9 +2,11 @@
 
 1. Why are you using a custom GQL library in your app instead of a well tested and maintained package? What was the cost/benefit analysis results with that discussion. A lot of the problems mentioned that need solving in the tech test around the fetching/storing/handling of data are solved problems with packages like apollo/urql/tanstack.
 
+## Notes 
 
+1. I'm unsure if I've done as requested when it comes to `useTenantQuery` / `useTenantMutation`. The usage of GQL terminology for hooks that I don't beleive should be sent across the wire have confused me. I'm guessing the real app uses this terminology because it has to swap out some sort of perms but in the context of a tech test, a pair of hooks that don't use GQL being called Query/Mutation is confusing. Instead I'd rather a set up like `const { setTenant, getTenant } = useTenant();`. This approach is simpler and easier for everyone to understand. It also doesn't indicate underlying mechanisms as that isn't a concern of the components that use it. It's also a more familiar pattern within React due to native hooks such as `useState`
 
-## Notes on tech test
+## Feedback on tech test
 
 1. Missing `npm install -D graphql` in setup steps. msw throws an error if it's not been installed.
 
@@ -15,4 +17,12 @@
 -----------
 + import { HttpResponse } from 'msw';
 + import { graphql } from 'msw/graphql';
+```
+
+3. main.tsx code from the appendix also threw errors. Again, I'm guessing msw has been updated since this was written. Added a git diff example:
+
+```
+- return worker.start({ onUnhandledRequest: 'bypass' });
+-----------
++ return worker.start({ onUnhandledFrame: 'bypass' }) ;
 ```

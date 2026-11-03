@@ -1,19 +1,19 @@
-import styled from "styled-components"
 import GlobalStyle from "./components/GlobalStyles"
-
-const Title = styled.h1`
-  color: orange;
-`
+import AppHeader from "./components/AppHeader"
+import DeviceList from "./components/DeviceList"
+import { GqlProvider } from "./lib/gql"
+import { TenantProvider } from "./lib/tenant"
 
 function App() {
-  // This is the root component
-
   return (
-    <>
-      <GlobalStyle />
-      <Title>This is the homepage</Title>
-    </>
+    <GqlProvider>
+      <TenantProvider>
+        <GlobalStyle />
+        <AppHeader />
+        <DeviceList />
+      </TenantProvider>
+    </GqlProvider>
   )
-}1. 
+}
 
 export default App
