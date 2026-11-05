@@ -4,6 +4,7 @@ import { flushSync } from 'react-dom'
 import { DevicePolicy, DeviceState } from '@/components/DeviceStatus'
 import DevicePullout from '@/components/DevicePullout'
 import Pagination from '@/components/Pagination'
+import RetryButton from '@/components/RetryButton'
 import { UNAVAILABLE, formatDate } from '@/lib/format'
 import {
   DEVICE_STATES,
@@ -83,7 +84,7 @@ function DeviceList() {
 
   // TODO: a superseded search keeps running. It can't overwrite anything, as the response goes to
   // its own cache entry, but aborting it would save the request.
-  const { data, loading, errors } = useTenantQuery<ListDevicesData, ListDevicesVars>(LIST_DEVICES_QUERY, {
+  const { data, loading, errors, refetch } = useTenantQuery<ListDevicesData, ListDevicesVars>(LIST_DEVICES_QUERY, {
     variables: {
       ...deviceSearchVariables(search),
       stateId,
@@ -104,10 +105,13 @@ function DeviceList() {
     setLastResult({ data, filtersKey })
   }
 
+  // The total belongs to other filters. Paging on it could land past the end of the new results.
+  const totalIsOutdated = !data && lastResult?.filtersKey !== filtersKey
   const responseTotal = data ? (data.listDevices?.pageInfo?.total_count ?? 0) : undefined
   const lastTotal = lastResult?.data.listDevices?.pageInfo?.total_count ?? 0
-  // Kept after a failed page load too, so that the user can still page away from it.
-  const totalCount = responseTotal ?? lastTotal
+  // Kept after a failed page load, so that the user can still page away from it. A failed search
+  // has no total of its own, and showing the old one would describe results that aren't on screen.
+  const totalCount = responseTotal ?? (totalIsOutdated && errors.length > 0 ? 0 : lastTotal)
 
   // The current page can stop existing, e.g. when devices leave the results.
   const lastPage = Math.max(1, Math.ceil(totalCount / DEFAULT_PAGE_SIZE))
@@ -115,11 +119,10 @@ function DeviceList() {
     setPage(lastPage)
   }
 
-  const shownData = data ?? (loading ? lastResult?.data : undefined)
+  // Not while an error is showing, or retrying a failed search would bring back the old rows.
+  const shownData = data ?? (loading && errors.length === 0 ? lastResult?.data : undefined)
   const devices = shownData?.listDevices?.deviceList?.filter((device) => device !== null) ?? []
   const showingPreviousRows = !data && shownData !== undefined
-  // The total belongs to other filters. Paging on it could land past the end of the new results.
-  const totalIsOutdated = !data && lastResult?.filtersKey !== filtersKey
 
   return (
     <S.Container>
@@ -129,8 +132,15 @@ function DeviceList() {
         </S.Heading>
         <DeviceFilters stateId={stateId} onSearchChange={changeSearch} onStateChange={changeState} />
         {/* NOTE: Could have abstracted this section outside the return with a let but I find doing it this way helps enforce seperation of concerns, especially considering the talk about handling errors and data together. */}
-        {!loading && errors.length > 0 && <S.ErrorMessage role="alert">{errors.join('; ')}</S.ErrorMessage>}
-        {loading && !data && devices.length === 0 && <S.Message>Loading devices…</S.Message>}
+        {errors.length > 0 && (
+          <>
+            <S.ErrorMessage role="alert">{errors.join('; ')}</S.ErrorMessage>
+            <RetryButton retrying={loading} onRetry={() => void refetch()} focusAfterRef={headingRef} />
+          </>
+        )}
+        {loading && errors.length === 0 && !data && devices.length === 0 && (
+          <S.Message>Loading devices…</S.Message>
+        )}
         {data && errors.length === 0 && devices.length === 0 && (
           <S.Message>{emptyMessage(search, stateId)}</S.Message>
         )}

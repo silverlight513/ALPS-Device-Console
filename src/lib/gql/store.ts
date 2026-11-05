@@ -104,7 +104,8 @@ export function createGqlStore() {
       const previous = entries.get(key);
       write(key, {
         data: previous?.data,
-        errors: [],
+        // Kept until the response lands, so a warning or error doesn't vanish during a reload.
+        errors: previous?.errors ?? [],
         loading: true,
         fetchedAt: previous?.fetchedAt ?? null,
       });

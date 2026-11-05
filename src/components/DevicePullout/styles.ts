@@ -33,6 +33,10 @@ export const Title = styled.h2`
   font-weight: 600;
   color: ${({ theme }) => theme.colors.textPrimary};
   overflow-wrap: anywhere;
+
+  &:focus {
+    outline: none;
+  }
 `
 
 export const CloseButton = styled.button`

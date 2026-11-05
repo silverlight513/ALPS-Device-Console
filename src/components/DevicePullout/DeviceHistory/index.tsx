@@ -1,6 +1,7 @@
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 
 import Pagination from '@/components/Pagination'
+import RetryButton from '@/components/RetryButton'
 import {
   LIST_DEVICE_HISTORY_QUERY,
   deviceHistoryKey,
@@ -15,9 +16,10 @@ const PAGE_SIZE = 5
 
 function DeviceHistory({ deviceId }: { deviceId: string }) {
   const headingId = useId()
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const [page, setPage] = useState(1)
 
-  const { data, loading, errors } = useTenantQuery<ListDeviceHistoryData, ListDeviceHistoryVars>(
+  const { data, loading, errors, refetch } = useTenantQuery<ListDeviceHistoryData, ListDeviceHistoryVars>(
     LIST_DEVICE_HISTORY_QUERY,
     {
       variables: { deviceId, page, pageSize: PAGE_SIZE },
@@ -26,30 +28,36 @@ function DeviceHistory({ deviceId }: { deviceId: string }) {
     },
   )
 
-  const responseTotal = data ? (data.listDeviceHistory?.pageInfo?.total_count ?? 0) : undefined
+  // Each page has its own cache entry, so nothing is returned while a new page loads. Keeping the
+  // last result stops the panel collapsing, which would move Next out from under the cursor.
+  // The pullout remounts per device, so it's never another device's history.
+  const [lastData, setLastData] = useState<ListDeviceHistoryData | undefined>(undefined)
 
-  // Each page has its own cache entry, so the total is missing while a new page loads.
-  // Remembering it keeps the pagination on screen. The pullout remounts per device, so it's never another device's count.
-  const [lastTotal, setLastTotal] = useState(0)
-
-  if (responseTotal !== undefined && lastTotal !== responseTotal) {
-    setLastTotal(responseTotal)
+  if (data && lastData !== data) {
+    setLastData(data)
   }
 
-  const totalCount = responseTotal ?? lastTotal
-  const histories = data?.listDeviceHistory?.histories?.filter((entry) => entry !== null) ?? []
+  const totalCount = (data ?? lastData)?.listDeviceHistory?.pageInfo?.total_count ?? 0
+  const shownData = data ?? (loading && errors.length === 0 ? lastData : undefined)
+  const histories = shownData?.listDeviceHistory?.histories?.filter((entry) => entry !== null) ?? []
 
-  // TODO: add a retry button. For now, failed entries are never fresh, so reopening the panel refetches them.
   return (
     <Section aria-labelledby={headingId}>
-      <S.Heading id={headingId}>History</S.Heading>
-      {errors.length > 0 && <ErrorMessage role="alert">{errors.join('; ')}</ErrorMessage>}
-      {loading && !data && <Message>Loading history…</Message>}
+      <S.Heading ref={headingRef} id={headingId} tabIndex={-1}>
+        History
+      </S.Heading>
+      {errors.length > 0 && (
+        <>
+          <ErrorMessage role="alert">{errors.join('; ')}</ErrorMessage>
+          <RetryButton retrying={loading} onRetry={() => void refetch()} focusAfterRef={headingRef} />
+        </>
+      )}
+      {loading && errors.length === 0 && !data && histories.length === 0 && <Message>Loading history…</Message>}
       {!loading && data && errors.length === 0 && histories.length === 0 && (
         <Message>No history for this device.</Message>
       )}
       {histories.length > 0 && (
-        <S.List>
+        <S.List aria-busy={loading} $dimmed={!data}>
           {histories.map((entry, index) => (
             <S.Entry key={`${entry.createdAt}-${index}`}>
               <S.EntryHeader>

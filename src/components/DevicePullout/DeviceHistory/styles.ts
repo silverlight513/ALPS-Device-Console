@@ -4,12 +4,17 @@ export const Heading = styled.h3`
   font-size: 14px;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.textPrimary};
+
+  &:focus {
+    outline: none;
+  }
 `
 
-export const List = styled.ul`
+export const List = styled.ul<{ $dimmed: boolean }>`
   margin: 0;
   padding: 0;
   list-style: none;
+  opacity: ${({ $dimmed }) => ($dimmed ? 0.6 : 1)};
 `
 
 export const Entry = styled.li`

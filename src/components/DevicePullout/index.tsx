@@ -1,5 +1,6 @@
-import { useId, type KeyboardEvent, type Ref } from 'react'
+import { useId, useRef, type KeyboardEvent, type Ref } from 'react'
 
+import RetryButton from '@/components/RetryButton'
 import {
   DEVICE_DETAIL_QUERY,
   deviceDetailKey,
@@ -19,8 +20,9 @@ type DevicePulloutProps = {
 
 function DevicePullout({ deviceId, onClose, ref }: DevicePulloutProps) {
   const titleId = useId()
+  const titleRef = useRef<HTMLHeadingElement>(null)
 
-  const { data, loading, errors } = useTenantQuery<DeviceDetailData, DeviceDetailVars>(
+  const { data, loading, errors, refetch } = useTenantQuery<DeviceDetailData, DeviceDetailVars>(
     DEVICE_DETAIL_QUERY,
     {
       variables: { deviceId },
@@ -40,7 +42,7 @@ function DevicePullout({ deviceId, onClose, ref }: DevicePulloutProps) {
   return (
     <S.Panel ref={ref} tabIndex={-1} aria-labelledby={titleId} onKeyDown={handleKeyDown}>
       <S.Header>
-        <S.Title id={titleId}>{device?.serialNumber ?? deviceId}</S.Title>
+        <S.Title ref={titleRef} id={titleId} tabIndex={-1}>{device?.serialNumber ?? deviceId}</S.Title>
         <S.CloseButton type="button" onClick={onClose}>
           Close
         </S.CloseButton>
@@ -50,6 +52,7 @@ function DevicePullout({ deviceId, onClose, ref }: DevicePulloutProps) {
           <S.Warning role="alert">Some details may be missing or out of date: {errorText}</S.Warning>
         )}
         {!device && errorText && <S.ErrorMessage role="alert">{errorText}</S.ErrorMessage>}
+        {errorText && <RetryButton retrying={loading} onRetry={() => void refetch()} focusAfterRef={titleRef} />}
         {!device && !errorText && loading && <S.Message>Loading device…</S.Message>}
         {!device && !errorText && !loading && <S.Message>Device not found.</S.Message>}
         {device && <DeviceDetailsList device={device} />}
