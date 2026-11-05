@@ -3,13 +3,13 @@ import { flushSync } from 'react-dom'
 
 import DevicePullout from '@/components/DevicePullout'
 import Pagination from '@/components/Pagination'
-import { useQuery } from '@/lib/gql'
 import {
   LIST_DEVICES_KEY,
   LIST_DEVICES_QUERY,
   type ListDevicesData,
   type ListDevicesVars,
 } from '@/lib/gql/queries/listDevices'
+import { useTenantQuery } from '@/lib/tenant'
 import * as S from './styles'
 
 const DEFAULT_PAGE_SIZE = 10
@@ -21,10 +21,7 @@ const POLICY_TONES: Record<string, S.PolicyTone> = {
   'pol-3': 'danger',
 }
 
-function DeviceList({ tenantId }: { tenantId: string }) {
-
-  console.log(tenantId)
-
+function DeviceList() {
   const [page, setPage] = useState(1)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
 
@@ -50,9 +47,8 @@ function DeviceList({ tenantId }: { tenantId: string }) {
     setSelectedDeviceId(null)
   }
 
-  const { data, loading, errors } = useQuery<ListDevicesData, ListDevicesVars>(LIST_DEVICES_QUERY, {
+  const { data, loading, errors } = useTenantQuery<ListDevicesData, ListDevicesVars>(LIST_DEVICES_QUERY, {
     variables: {
-      tenantId,
       page,
       pageSize: DEFAULT_PAGE_SIZE,
     },

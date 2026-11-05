@@ -45,7 +45,6 @@ export const LIST_DEVICES_QUERY = /* GraphQL */ `
 `;
 
 export type ListDevicesVars = {
-  tenantId: string;
   imei?: string;
   serialNumber?: string;
   stateId?: number;
