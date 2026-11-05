@@ -10,6 +10,10 @@
 
 3. Known wart: `load()` clears `errors` while revalidating. Reopening `SN-0000-POISON` after its entry is cached briefly shows the "Unavailable" fields without the warning banner, until the new response lands. I accepted this rather than change the store for a cosmetic flicker.
 
+4. Search is one box, but `listDevices` ANDs `imei` and `serialNumber`, so sending the term as both matches almost nothing. Two queries can't be merged under server-side pagination. All digits searches IMEI and anything else searches serial. The catch is that a digits-only serial fragment searches IMEIs instead: `0012` misses a serial like `SN-0012-A` (`-0012` finds it) and can return an unrelated device whose IMEI contains those digits. The empty state names the field it searched, but a false match like that has no such hint.
+
+5. A new search keeps the previous rows on screen, dimmed, until the response lands. This lives in `DeviceList` rather than `useQuery`, so the hook only ever returns data for its current variables. The rows can't cross tenants because the list remounts per tenant. Pagination is disabled while a search or filter change is pending, because its total belongs to the old results. It stays live for page changes, so keyboard users don't lose focus on Next.
+
 ## Feedback on tech test
 
 1. Missing `npm install -D graphql` in setup steps. msw throws an error if it's not been installed.

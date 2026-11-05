@@ -65,15 +65,13 @@ function DeviceHistory({ deviceId }: { deviceId: string }) {
           ))}
         </S.List>
       )}
-      {totalCount > 0 && (
-        <Pagination
-          page={page}
-          totalCount={totalCount}
-          pageSize={PAGE_SIZE}
-          onPageChange={setPage}
-          label="History pagination"
-        />
-      )}
+      <Pagination
+        page={page}
+        totalCount={totalCount}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+        label="History pagination"
+      />
     </Section>
   )
 }

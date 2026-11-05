@@ -1,5 +1,21 @@
 export const LIST_DEVICES_KEY = 'list-devices';
 
+// The API has no query that lists states, so these mirror the backend's IDs.
+export const DEVICE_STATES = [
+  { id: 1, name: 'ENROLLED' },
+  { id: 2, name: 'ACTIVE' },
+  { id: 3, name: 'LOCKED' },
+  { id: 4, name: 'RELEASED' },
+] as const;
+
+// `listDevices` ANDs `imei` and `serialNumber`, so sending the term as both would match almost
+// nothing. Running one query per field can't work either, as the pages and totals can't be merged.
+// All digits is treated as an IMEI. A serial fragment still works if it has a non-digit, e.g. `-0012`.
+export function deviceSearchVariables(term: string): Pick<ListDevicesVars, 'imei' | 'serialNumber'> {
+  if (!term) return {};
+  return /^\d+$/.test(term) ? { imei: term } : { serialNumber: term };
+}
+
 export const LIST_DEVICES_QUERY = /* GraphQL */ `
   query ListDevices(
     $tenantId: String!

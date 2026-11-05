@@ -1,7 +1,5 @@
 import styled from "styled-components"
 
-import { DevicePolicy } from "@/components/DeviceStatus"
-
 export const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -36,40 +34,56 @@ export const ErrorMessage = styled.p`
   color: ${({ theme }) => theme.colors.danger};
 `
 
-export const List = styled.ul`
-  container-type: inline-size;
+export const TableWrapper = styled.div<{ $dimmed: boolean }>`
+  overflow-x: auto;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 4px;
   background: ${({ theme }) => theme.colors.surface};
+  opacity: ${({ $dimmed }) => ($dimmed ? 0.6 : 1)};
 `
 
-export const Row = styled.li<{ $selected: boolean }>`
-  position: relative;
-  box-sizing: border-box;
-  display: grid;
-  grid-template-columns: minmax(92px, 1fr) minmax(92px, 1fr) 136px;
-  align-items: center;
-  gap: 2px 12px;
-  min-height: 34px;
-  padding: 6px 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  ${({ theme, $selected }) =>
-    $selected &&
-    `
-      background: ${theme.colors.background};
-      box-shadow: inset 3px 0 0 ${theme.colors.accent};
-    `}
+// `separate` borders, because a collapsed table doesn't draw the selected row's box-shadow.
+export const Table = styled.table`
+  width: 100%;
+  border-collapse: separate;
 
-  &:hover {
+  th,
+  td {
+    padding: 6px 12px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+    font-size: 12.5px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.textSecondary};
+  }
+`
+
+export const NumericCell = styled.td`
+  font-variant-numeric: tabular-nums;
+`
+
+export const Row = styled.tr<{ $selected: boolean }>`
+  position: relative;
+
+  td {
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+    ${({ theme, $selected }) => $selected && `background: ${theme.colors.background};`}
+  }
+
+  td:first-child {
+    ${({ theme, $selected }) => $selected && `box-shadow: inset 3px 0 0 ${theme.colors.accent};`}
+  }
+
+  &:hover td {
     background: ${({ theme }) => theme.colors.background};
   }
 
-  &:last-child {
+  &:last-child td {
     border-bottom: 0;
-  }
-
-  @container (max-width: 430px) {
-    grid-template-columns: minmax(0, 1fr) auto;
   }
 `
 
@@ -99,11 +113,5 @@ export const SerialButton = styled.button`
   &:focus-visible::after {
     outline: 2px solid ${({ theme }) => theme.colors.accent};
     outline-offset: -2px;
-  }
-`
-
-export const RowPolicy = styled(DevicePolicy)`
-  @container (max-width: 430px) {
-    grid-column: 1 / -1;
   }
 `

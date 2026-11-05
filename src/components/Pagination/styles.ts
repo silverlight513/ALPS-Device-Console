@@ -1,6 +1,7 @@
 import styled from "styled-components"
 
-export const Nav = styled.nav`
+export const Nav = styled.nav<{ $dimmed: boolean }>`
+  opacity: ${({ $dimmed }) => ($dimmed ? 0.6 : 1)};
   display: flex;
   flex-direction: column;
   align-items: center;

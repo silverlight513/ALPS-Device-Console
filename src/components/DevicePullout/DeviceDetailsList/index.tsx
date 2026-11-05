@@ -1,11 +1,7 @@
 import { DevicePolicy, DeviceState } from '@/components/DeviceStatus'
+import { UNAVAILABLE, formatDate } from '@/lib/format'
 import type { DeviceDetail } from '@/lib/gql/queries/deviceDetail'
 import * as S from './styles'
-
-const UNAVAILABLE = 'Unavailable'
-
-const formatDate = (date: string | null | undefined) =>
-  date ? new Date(date).toLocaleString() : UNAVAILABLE
 
 function DeviceDetailsList({ device }: { device: DeviceDetail }) {
   const model = [device.deviceBrandName, device.deviceModelMarketingName].filter(Boolean).join(' ')
