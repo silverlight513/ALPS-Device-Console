@@ -6,6 +6,8 @@
 
 1. I'm unsure if I've done as requested when it comes to `useTenantQuery` / `useTenantMutation`. The usage of GQL terminology for hooks that I don't beleive should be sent across the wire have confused me. I'm guessing the real app uses this terminology because it has to swap out some sort of perms but in the context of a tech test, a pair of hooks that don't use GQL being called Query/Mutation is confusing. Instead I'd rather a set up like `const { setTenant, getTenant } = useTenant();`. This approach is simpler and easier for everyone to understand. It also doesn't indicate underlying mechanisms as that isn't a concern of the components that use it. It's also a more familiar pattern within React due to native hooks such as `useState`
 
+2. The theming and design work. I'm aware it said that "visual polish" is explicitly out of scope. I chose to spin up a quick theme and simple design so that I could test the project easier and find anything missing that shouldn't be missing. Without any sort of visual polish, the project would have been more difficult to manually test. It also took very little time to put the theme together. If it took a significant portion of the time alloted, I would have obviously kept stricter to the requirements.
+
 ## Feedback on tech test
 
 1. Missing `npm install -D graphql` in setup steps. msw throws an error if it's not been installed.

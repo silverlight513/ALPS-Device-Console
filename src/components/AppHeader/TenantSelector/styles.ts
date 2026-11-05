@@ -4,15 +4,15 @@ export const Label = styled.label`
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  color: #4b5563;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textSecondary};
 `
 
 export const Select = styled.select`
-  padding: 6px 8px;
-  border: 1px solid #d1d5db;
+  padding: 3px 6px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 4px;
-  background: #ffffff;
-  color: #111827;
+  background: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.textPrimary};
   font: inherit;
 `
