@@ -37,7 +37,8 @@ function DeviceHistory({ deviceId }: { deviceId: string }) {
     setLastData(data)
   }
 
-  const totalCount = (data ?? lastData)?.listDeviceHistory?.pageInfo?.total_count ?? 0
+  const latestData = data ?? lastData
+  const totalCount = latestData ? (latestData.listDeviceHistory?.pageInfo?.total_count ?? 0) : undefined
   const shownData = data ?? (loading && errors.length === 0 ? lastData : undefined)
   const histories = shownData?.listDeviceHistory?.histories?.filter((entry) => entry !== null) ?? []
 

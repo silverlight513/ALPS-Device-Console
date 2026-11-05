@@ -109,12 +109,12 @@ function DeviceList() {
   const totalIsOutdated = !data && lastResult?.filtersKey !== filtersKey
   const responseTotal = data ? (data.listDevices?.pageInfo?.total_count ?? 0) : undefined
   const lastTotal = lastResult?.data.listDevices?.pageInfo?.total_count ?? 0
-  // Kept after a failed page load, so that the user can still page away from it. A failed search
-  // has no total of its own, and showing the old one would describe results that aren't on screen.
-  const totalCount = responseTotal ?? (totalIsOutdated && errors.length > 0 ? 0 : lastTotal)
+  // Kept after a failed page load, so that the user can still page away from it. A new search has
+  // no total until it lands, and showing the old one would describe different results.
+  const totalCount = responseTotal ?? (totalIsOutdated ? undefined : lastTotal)
 
   // The current page can stop existing, e.g. when devices leave the results.
-  const lastPage = Math.max(1, Math.ceil(totalCount / DEFAULT_PAGE_SIZE))
+  const lastPage = Math.max(1, Math.ceil((responseTotal ?? 0) / DEFAULT_PAGE_SIZE))
   if (responseTotal !== undefined && page > lastPage) {
     setPage(lastPage)
   }
@@ -195,7 +195,6 @@ function DeviceList() {
         totalCount={totalCount}
         pageSize={DEFAULT_PAGE_SIZE}
         onPageChange={changePage}
-        disabled={totalIsOutdated}
       />
       {selectedDeviceId && (
         <DevicePullout key={selectedDeviceId} ref={pulloutRef} deviceId={selectedDeviceId} onClose={closePullout} />
