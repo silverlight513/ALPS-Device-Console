@@ -22,6 +22,10 @@ export const Content = styled.div`
 
 export const Heading = styled.h1`
   font-weight: 600;
+
+  &:focus {
+    outline: none;
+  }
 `
 
 export const Message = styled.p`
@@ -39,7 +43,8 @@ export const List = styled.ul`
   background: ${({ theme }) => theme.colors.surface};
 `
 
-export const Row = styled.li`
+export const Row = styled.li<{ $selected: boolean }>`
+  position: relative;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(92px, 1fr) minmax(92px, 1fr) 136px;
@@ -48,6 +53,16 @@ export const Row = styled.li`
   min-height: 34px;
   padding: 6px 12px;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  ${({ theme, $selected }) =>
+    $selected &&
+    `
+      background: ${theme.colors.background};
+      box-shadow: inset 3px 0 0 ${theme.colors.accent};
+    `}
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.background};
+  }
 
   &:last-child {
     border-bottom: 0;
@@ -58,10 +73,33 @@ export const Row = styled.li`
   }
 `
 
-export const Serial = styled.span`
+// The ::after stretches the click area and focus ring over the whole row, which is its positioning parent.
+export const SerialButton = styled.button`
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
   color: ${({ theme }) => theme.colors.accent};
+  font: inherit;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible::after {
+    outline: 2px solid ${({ theme }) => theme.colors.accent};
+    outline-offset: -2px;
+  }
 `
 
 export const State = styled.span`

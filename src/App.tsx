@@ -2,10 +2,10 @@ import { ThemeProvider } from "styled-components"
 import GlobalStyle from "./components/GlobalStyles"
 import AppHeader from "./components/AppHeader"
 import PageContainer from "./components/PageContainer"
-import DeviceList from "./components/DeviceList"
 import { GqlProvider } from "./lib/gql"
 import { TenantProvider } from "./lib/tenant"
 import { theme } from "./theme"
+import DevicesPageContent from "./components/DevicesPageContent"
 
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
           <GlobalStyle />
           <AppHeader />
           <PageContainer>
-            <DeviceList />
+            <DevicesPageContent />
           </PageContainer>
         </TenantProvider>
       </GqlProvider>
