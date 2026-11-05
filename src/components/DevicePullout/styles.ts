@@ -50,3 +50,47 @@ export const CloseButton = styled.button`
     border-color: ${({ theme }) => theme.colors.textSecondary};
   }
 `
+
+export const Section = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+
+  &:last-child {
+    border-bottom: 0;
+  }
+`
+
+export const Message = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+`
+
+export const ErrorMessage = styled.p`
+  color: ${({ theme }) => theme.colors.danger};
+`
+
+export const Warning = styled.p`
+  padding: 6px 10px;
+  border-radius: 4px;
+  color: ${({ theme }) => theme.colors.warning};
+  background: ${({ theme }) => theme.colors.warningTint};
+`
+
+export const Fields = styled.dl`
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 0;
+`
+
+export const Label = styled.dt`
+  color: ${({ theme }) => theme.colors.textSecondary};
+`
+
+export const Value = styled.dd`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  overflow-wrap: anywhere;
+`

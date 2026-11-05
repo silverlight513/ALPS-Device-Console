@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
 import DevicePullout from '@/components/DevicePullout'
+import { DeviceState } from '@/components/DeviceStatus'
 import Pagination from '@/components/Pagination'
 import {
   LIST_DEVICES_KEY,
@@ -13,13 +14,6 @@ import { useTenantQuery } from '@/lib/tenant'
 import * as S from './styles'
 
 const DEFAULT_PAGE_SIZE = 10
-
-// The API also sends `policy.color`, but those colours aren't readable as text on this theme.
-const POLICY_TONES: Record<string, S.PolicyTone> = {
-  'pol-1': 'success',
-  'pol-2': 'warning',
-  'pol-3': 'danger',
-}
 
 function DeviceList() {
   const [page, setPage] = useState(1)
@@ -96,13 +90,8 @@ function DeviceList() {
                 >
                   {device.serialNumber ?? device.id}
                 </S.SerialButton>
-                <S.State>
-                  <S.StateDot $state={device.state?.name ?? null} />
-                  {device.state?.name ?? 'UNKNOWN'}
-                </S.State>
-                <S.Policy $tone={POLICY_TONES[device.policy.id] ?? 'neutral'}>
-                  {device.policy.name ?? 'Unknown policy'}
-                </S.Policy>
+                <DeviceState state={device.state} />
+                <S.RowPolicy policy={device.policy} />
               </S.Row>
             )
           })}
@@ -117,7 +106,7 @@ function DeviceList() {
         />
       )}
       {selectedDeviceId && (
-        <DevicePullout ref={pulloutRef} deviceId={selectedDeviceId} onClose={closePullout} />
+        <DevicePullout key={selectedDeviceId} ref={pulloutRef} deviceId={selectedDeviceId} onClose={closePullout} />
       )}
     </S.Container>
   )

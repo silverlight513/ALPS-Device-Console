@@ -8,6 +8,8 @@
 
 2. The theming and design work. I'm aware it said that "visual polish" is explicitly out of scope. I chose to spin up a quick theme and simple design so that I could test the project easier and find anything missing that shouldn't be missing. Without any sort of visual polish, the project would have been more difficult to manually test. It also took very little time to put the theme together. If it took a significant portion of the time alloted, I would have obviously kept stricter to the requirements.
 
+3. Known wart: `load()` clears `errors` while revalidating. Reopening `SN-0000-POISON` after its entry is cached briefly shows the "Unavailable" fields without the warning banner, until the new response lands. I accepted this rather than change the store for a cosmetic flicker.
+
 ## Feedback on tech test
 
 1. Missing `npm install -D graphql` in setup steps. msw throws an error if it's not been installed.

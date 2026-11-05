@@ -5,15 +5,16 @@ type PaginationProps = {
   totalCount: number
   pageSize: number
   onPageChange: (page: number) => void
+  label?: string
 }
 
-function Pagination({ page, totalCount, pageSize, onPageChange }: PaginationProps) {
+function Pagination({ page, totalCount, pageSize, onPageChange, label = 'Pagination' }: PaginationProps) {
   const totalPages = Math.ceil(totalCount / pageSize)
   const firstResult = (page - 1) * pageSize + 1
   const lastResult = Math.min(page * pageSize, totalCount)
 
   return (
-    <S.Nav aria-label="Pagination">
+    <S.Nav aria-label={label}>
       {totalPages > 1 && (
         <S.Controls>
           <S.Button type="button" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
