@@ -116,8 +116,6 @@ export function useMutation<TData, TVars>(
         setLoading(false);
         setErrors(result.errors);
       }
-      // TODO: a successful mutation leaves the query cache as it is, so cached queries can
-      // show old data until they are refetched or their TTL expires.
 
       if (result.errors.length > 0 && throwError) throw new GraphQLRequestError(result.errors);
       return result.data as TData | undefined;

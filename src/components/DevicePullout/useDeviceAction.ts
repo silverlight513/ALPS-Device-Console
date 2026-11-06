@@ -50,8 +50,7 @@ export function useDeviceAction(deviceId: string, setOverride: SetDeviceOverride
   }
 
   const run = async (action: RunnableAction) => {
-    // TODO: a real console should ask for confirmation before a release or a lock, both of which affect
-    // the customer's handset. The optimistic update would then start after the confirmation.
+    // TODO: Add a user confirmation modal so that users don't accidentally lock out customers from their devices unintentionally.
     const override = overrideFor(action)
     setPending(action)
     setError(null)
