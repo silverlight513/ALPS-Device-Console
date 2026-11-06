@@ -34,3 +34,5 @@ I'd also want to break up the components differently and introduce real componen
 
 The GQL data store/layer needs a lot more work, specifically all of the mentioned parts in the spec i.e. garbage collection, subscriptions and retry with backoffs.
 
+Also better dev tooling, I didn't add anything like prettier to save time but it would have been a lot nicer having it.
+
