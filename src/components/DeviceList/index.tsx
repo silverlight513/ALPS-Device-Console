@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
 import { DevicePolicy, DeviceState } from '@/components/DeviceStatus'
 import DevicePullout from '@/components/DevicePullout'
 import Pagination from '@/components/Pagination'
 import RetryButton from '@/components/RetryButton'
+import { applyOverride, type DeviceOverride, type SetDeviceOverride } from '@/lib/devices/overrides'
 import { UNAVAILABLE, formatDate } from '@/lib/format'
 import {
   DEVICE_STATES,
@@ -41,6 +42,16 @@ function DeviceList() {
   const [stateId, setStateId] = useState<number | undefined>(undefined)
   const [page, setPage] = useState(1)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
+
+  // Optimistic changes for devices with an action waiting on the server. Kept here because this renders
+  // both places a device appears, its row and the pullout. Remounting per tenant clears it.
+  const [overrides, setOverrides] = useState<Record<string, DeviceOverride>>({})
+  const setOverride = useCallback<SetDeviceOverride>((deviceId, override) => {
+    setOverrides((current) => {
+      const { [deviceId]: _removed, ...rest } = current
+      return override ? { ...rest, [deviceId]: override } : rest
+    })
+  }, [])
 
   const headingRef = useRef<HTMLHeadingElement>(null)
   const selectedRowButtonRef = useRef<HTMLButtonElement>(null)
@@ -159,7 +170,8 @@ function DeviceList() {
                 </tr>
               </thead>
               <tbody>
-                {devices.map((device) => {
+                {devices.map((confirmedDevice) => {
+                  const device = applyOverride(confirmedDevice, overrides[confirmedDevice.id])
                   const isSelected = device.id === selectedDeviceId
 
                   return (
@@ -198,7 +210,14 @@ function DeviceList() {
         onPageChange={changePage}
       />
       {selectedDeviceId && (
-        <DevicePullout key={selectedDeviceId} ref={pulloutRef} deviceId={selectedDeviceId} onClose={closePullout} />
+        <DevicePullout
+          key={selectedDeviceId}
+          ref={pulloutRef}
+          deviceId={selectedDeviceId}
+          onClose={closePullout}
+          override={overrides[selectedDeviceId]}
+          setOverride={setOverride}
+        />
       )}
     </S.Container>
   )

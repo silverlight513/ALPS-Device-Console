@@ -61,6 +61,11 @@ export const CloseButton = styled.button`
   &:hover {
     border-color: ${({ theme }) => theme.colors.textSecondary};
   }
+
+  &[aria-disabled='true'] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `
 
 export const Section = styled.section`

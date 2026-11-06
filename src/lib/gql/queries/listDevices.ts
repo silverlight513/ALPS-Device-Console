@@ -8,6 +8,13 @@ export const DEVICE_STATES = [
   { id: 4, name: 'RELEASED' },
 ] as const;
 
+// Actions are matched by the state they move a device into, not by ID, which the spec says not to hardcode.
+export const ACTIVE_STATE_ID = 2;
+export const LOCKED_STATE_ID = 3;
+export const RELEASED_STATE_ID = 4;
+
+export const stateName = (stateId: number) => DEVICE_STATES.find((state) => state.id === stateId)?.name ?? null;
+
 // `listDevices` ANDs `imei` and `serialNumber`, so sending the term as both would match almost
 // nothing. Running one query per field can't work either, as the pages and totals can't be merged.
 // All digits is treated as an IMEI. A serial fragment still works if it has a non-digit, e.g. `-0012`.

@@ -70,6 +70,10 @@ export function createGqlStore() {
   const listeners = new Map<string, Set<() => void>>();
   /** Which cache keys have been read under each caller-supplied `queryKey`. */
   const keysByLabel = new Map<string, Set<string>>();
+  /** The last query and variables loaded for each key, so `refresh` can repeat them. */
+  const requests = new Map<string, { query: string; variables: unknown }>();
+
+  const keysFor = (labelOrKey: string) => keysByLabel.get(labelOrKey) ?? new Set([labelOrKey]);
 
   function write(key: string, entry: CacheEntry | undefined) {
     if (entry) entries.set(key, entry);
@@ -102,6 +106,7 @@ export function createGqlStore() {
 
       const controller = new AbortController();
       const previous = entries.get(key);
+      requests.set(key, { query, variables });
       write(key, {
         data: previous?.data,
         // Kept until the response lands, so a warning or error doesn't vanish during a reload.
@@ -136,12 +141,49 @@ export function createGqlStore() {
     /** Accepts a `queryKey` label or a cache key. Clears the data for every hook reading those keys. */
     reset(labelOrKey: string) {
       // Tags outlive a reset, because hooks can still be mounted on those keys under this label.
-      const keys = keysByLabel.get(labelOrKey) ?? new Set([labelOrKey]);
-      for (const key of keys) {
+      for (const key of keysFor(labelOrKey)) {
         const running = inFlight.get(key);
         inFlight.delete(key);
         running?.controller.abort();
         write(key, undefined);
+      }
+    },
+
+    /**
+     * Accepts a `queryKey` label or a cache key. Reloads every entry a hook is reading, keeping its data
+     * on screen meanwhile, and marks the rest stale so they reload when next read. A request already
+     * running is restarted, because it may have been sent before the change that made the data stale.
+     */
+    async refresh(labelOrKey: string): Promise<void> {
+      const reloads = [...keysFor(labelOrKey)].map((key) => {
+        const entry = entries.get(key);
+        const request = requests.get(key);
+        if (!entry || !request) return undefined;
+        if (!listeners.get(key)?.size) {
+          write(key, { ...entry, fetchedAt: null });
+          return undefined;
+        }
+        const running = inFlight.get(key);
+        inFlight.delete(key);
+        running?.controller.abort();
+        return this.load(key, request.query, request.variables);
+      });
+      await Promise.all(reloads);
+    },
+
+    /** The current entries for a `queryKey` label or a cache key. */
+    entriesFor(labelOrKey: string): CacheEntry[] {
+      return [...keysFor(labelOrKey)].flatMap((key) => entries.get(key) ?? []);
+    },
+
+    /**
+     * Accepts a `queryKey` label or a cache key. Rewrites the data of every entry under it, for a change
+     * the caller already knows the result of. Freshness is left as it is.
+     */
+    update(labelOrKey: string, updater: (data: unknown) => unknown) {
+      for (const key of keysFor(labelOrKey)) {
+        const entry = entries.get(key);
+        if (entry?.data !== undefined) write(key, { ...entry, data: updater(entry.data) });
       }
     },
 
@@ -150,6 +192,7 @@ export function createGqlStore() {
       for (const running of inFlight.values()) running.controller.abort();
       inFlight.clear();
       keysByLabel.clear();
+      requests.clear();
       for (const key of [...entries.keys()]) write(key, undefined);
     },
   };
