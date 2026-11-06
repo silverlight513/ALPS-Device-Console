@@ -1,3 +1,5 @@
+import { useCallback, useState } from 'react'
+
 import type { AvailableAction } from '@/lib/gql/queries/listAvailableActions'
 import { stateName } from '@/lib/gql/queries/listDevices'
 
@@ -30,4 +32,19 @@ type DeviceShape = {
 
 export function applyOverride<T extends DeviceShape>(device: T, override: DeviceOverride | undefined): T {
   return override ? { ...device, state: override.state, policy: override.policy } : device
+}
+
+/**
+ * Holds the override for every device with an action waiting on the server. Whoever renders all the
+ * places a device appears holds this, so setting or removing an override moves them together.
+ */
+export function useDeviceOverrides() {
+  const [overrides, setOverrides] = useState<Record<string, DeviceOverride>>({})
+  const setOverride = useCallback<SetDeviceOverride>((deviceId, override) => {
+    setOverrides((current) => {
+      const { [deviceId]: _removed, ...rest } = current
+      return override ? { ...rest, [deviceId]: override } : rest
+    })
+  }, [])
+  return { overrides, setOverride }
 }

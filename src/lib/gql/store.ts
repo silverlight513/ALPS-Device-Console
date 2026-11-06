@@ -1,4 +1,4 @@
-const ENDPOINT = 'http://localhost:3000/graphql';
+export const ENDPOINT = 'http://localhost:3000/graphql';
 const TTL_MS = 30_000;
 
 export type GqlResult = { data: unknown; errors: string[] };

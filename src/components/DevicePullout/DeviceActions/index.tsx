@@ -9,9 +9,9 @@ import {
   type ListAvailableActionsData,
   type ListAvailableActionsVars,
 } from '@/lib/gql/queries/listAvailableActions'
-import { ACTIVE_STATE_ID, LOCKED_STATE_ID, RELEASED_STATE_ID } from '@/lib/gql/queries/listDevices'
+import { ACTIVE_STATE_ID, LOCKED_STATE_ID } from '@/lib/gql/queries/listDevices'
 import { useTenantQuery } from '@/lib/tenant'
-import { actionVerb, type RunnableAction } from '../useDeviceAction'
+import { actionLabel, type RunnableAction } from '../useDeviceAction'
 import { ErrorMessage, Section } from '../styles'
 import * as S from './styles'
 
@@ -25,22 +25,19 @@ type DeviceActionsProps = {
   onRun: (action: RunnableAction) => void
 }
 
-const PENDING_LABELS: Record<string, string> = {
-  lock: 'Locking…',
-  unlock: 'Unlocking…',
-  release: 'Releasing…',
+// Colour follows where an action takes the device, so a new action from the server still gets a sensible tone.
+const TONES: Record<number, S.ActionTone> = {
+  [LOCKED_STATE_ID]: 'danger',
+  [ACTIVE_STATE_ID]: 'accent',
 }
 
-function findAction(actions: (AvailableAction | null)[] | undefined, stateId: number): RunnableAction | null {
-  const action = actions?.find((candidate) => candidate?.stateId === stateId)
-  return action ? { ...action, stateId } : null
+// An action without a target state can't be shown optimistically, so it isn't offered.
+function runnable(actions: (AvailableAction | null)[] | null | undefined): RunnableAction[] {
+  return (actions ?? []).flatMap((action) => (action?.stateId != null ? [{ ...action, stateId: action.stateId }] : []))
 }
 
 function DeviceActions({ state, stateLoading, pending, error, onRun }: DeviceActionsProps) {
   const headingId = useId()
-  const commonReasonId = useId()
-  const toggleReasonId = useId()
-  const releaseReasonId = useId()
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   // The actions depend on the device's current state, so this can only run once the detail has one.
@@ -55,57 +52,19 @@ function DeviceActions({ state, stateLoading, pending, error, onRun }: DeviceAct
     },
   )
 
-  // `listAvailableActions` is the only thing that decides what can be done, including Lock or Unlock.
-  const actions = data?.listAvailableActions ?? undefined
-  const lockAction = findAction(actions, LOCKED_STATE_ID)
-  const unlockAction = findAction(actions, ACTIVE_STATE_ID)
-  const releaseAction = findAction(actions, RELEASED_STATE_ID)
-  const toggleAction = lockAction ?? unlockAction
-
-  const isLocked = state?.id === LOCKED_STATE_ID
-  // With nothing to name it, the label follows the device's state, so a LOCKED device never reads "Lock".
-  const toggleIsUnlock = toggleAction ? toggleAction === unlockAction : isLocked
+  // `listAvailableActions` alone decides what can be done: one button per action it returns, none hardcoded.
+  const actions = runnable(data?.listAvailableActions)
   const errorText = errors.join('; ')
+  // Only one action runs at a time, so every button waits while one is pending.
+  const enabled = pending === null
 
-  let commonReason: string | null = null
+  let reason: string | null = null
   if (stateId === null) {
-    commonReason = stateLoading ? 'Checking available actions…' : 'Device state unavailable'
+    reason = stateLoading ? 'Checking available actions…' : 'Device state unavailable'
   } else if (!data) {
-    commonReason = errorText ? "Couldn't load available actions" : 'Checking available actions…'
-  }
-
-  const unavailable = (verb: string, alreadyIn: boolean) =>
-    alreadyIn ? `Can't ${verb}: device is already ${state?.name}` : `Can't ${verb}: not available for a ${state?.name ?? 'device in this'} state`
-
-  const toggleReason =
-    !commonReason && !toggleAction ? unavailable(toggleIsUnlock ? 'unlock' : 'lock', isLocked && !toggleIsUnlock) : null
-  const releaseReason =
-    !commonReason && !releaseAction ? unavailable('release', state?.id === RELEASED_STATE_ID) : null
-
-  const renderButton = (
-    action: RunnableAction | null,
-    fallbackLabel: string,
-    reasonId: string,
-    reason: string | null,
-    tone: S.ActionTone,
-  ) => {
-    const enabled = action !== null && pending === null
-    const isPending = pending !== null && pending.id === action?.id
-    const describedBy = [commonReason && commonReasonId, reason && reasonId].filter(Boolean).join(' ')
-    return (
-      // `aria-disabled` rather than `disabled`, so keyboard and screen reader users can still reach it and hear why.
-      <S.ActionButton
-        type="button"
-        $tone={tone}
-        aria-disabled={!enabled}
-        aria-describedby={describedBy || undefined}
-        onClick={() => {
-          if (enabled) onRun(action)
-        }}
-      >
-        {isPending ? PENDING_LABELS[actionVerb(action)] : (action?.actionName ?? fallbackLabel)}
-      </S.ActionButton>
-    )
+    reason = errorText ? "Couldn't load available actions" : 'Checking available actions…'
+  } else if (actions.length === 0) {
+    reason = `No actions available for a ${state?.name} device`
   }
 
   return (
@@ -113,19 +72,28 @@ function DeviceActions({ state, stateLoading, pending, error, onRun }: DeviceAct
       <S.Heading ref={headingRef} id={headingId} tabIndex={-1}>
         Actions
       </S.Heading>
-      <S.ButtonRow>
-        {renderButton(
-          toggleAction,
-          toggleIsUnlock ? 'Unlock device' : 'Lock device',
-          toggleReasonId,
-          toggleReason,
-          toggleIsUnlock ? 'unlock' : 'lock',
-        )}
-        {renderButton(releaseAction, 'Release device', releaseReasonId, releaseReason, 'release')}
-      </S.ButtonRow>
-      {commonReason && <S.Reason id={commonReasonId}>{commonReason}</S.Reason>}
-      {toggleReason && <S.Reason id={toggleReasonId}>{toggleReason}</S.Reason>}
-      {releaseReason && <S.Reason id={releaseReasonId}>{releaseReason}</S.Reason>}
+      {actions.length > 0 && (
+        <S.ButtonRow>
+          {actions.map((action) => {
+            const label = actionLabel(action)
+            return (
+              // `aria-disabled` rather than `disabled`, so keyboard users can still reach it while another action runs.
+              <S.ActionButton
+                key={action.id}
+                type="button"
+                $tone={TONES[action.stateId] ?? 'neutral'}
+                aria-disabled={!enabled}
+                onClick={() => {
+                  if (enabled) onRun(action)
+                }}
+              >
+                {pending?.id === action.id ? `${label}…` : label}
+              </S.ActionButton>
+            )
+          })}
+        </S.ButtonRow>
+      )}
+      {reason && <S.Reason>{reason}</S.Reason>}
       {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
       {errorText && (
         <>

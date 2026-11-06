@@ -7,10 +7,8 @@ import { deviceDetailKey, type DeviceDetailData } from '@/lib/gql/queries/device
 import type { AvailableAction } from '@/lib/gql/queries/listAvailableActions'
 import { deviceHistoryKey } from '@/lib/gql/queries/listDeviceHistory'
 import {
-  ACTIVE_STATE_ID,
   LIST_DEVICES_KEY,
-  LOCKED_STATE_ID,
-  RELEASED_STATE_ID,
+  stateName,
   type ListDevicesData,
   type ListDevicesDevice,
 } from '@/lib/gql/queries/listDevices'
@@ -18,13 +16,8 @@ import { useTenantMutation } from '@/lib/tenant'
 
 export type RunnableAction = AvailableAction & { stateId: number }
 
-const VERBS: Record<number, string> = {
-  [LOCKED_STATE_ID]: 'lock',
-  [ACTIVE_STATE_ID]: 'unlock',
-  [RELEASED_STATE_ID]: 'release',
-}
-
-export const actionVerb = (action: RunnableAction) => VERBS[action.stateId] ?? 'update'
+// The server names its actions, so no action needs its own wording here. An unnamed one is described by where it goes.
+export const actionLabel = (action: RunnableAction) => action.actionName ?? `Move to ${stateName(action.stateId)}`
 
 type ConfirmedFields = Pick<ListDevicesDevice, 'state' | 'policy'> & Partial<Pick<ListDevicesDevice, 'lastCheckin'>>
 
@@ -59,7 +52,6 @@ export function useDeviceAction(deviceId: string, setOverride: SetDeviceOverride
   const run = async (action: RunnableAction) => {
     // TODO: a real console should ask for confirmation before a release or a lock, both of which affect
     // the customer's handset. The optimistic update would then start after the confirmation.
-    const verb = actionVerb(action)
     const override = overrideFor(action)
     setPending(action)
     setError(null)
@@ -72,7 +64,7 @@ export function useDeviceAction(deviceId: string, setOverride: SetDeviceOverride
       setOverride(deviceId, null)
       setPending(null)
       const message = caught instanceof GraphQLRequestError ? caught.errors.join('; ') : String((caught as Error).message)
-      setError(`Couldn't ${verb} device: ${message}`)
+      setError(`Couldn't complete "${actionLabel(action)}": ${message}`)
       return
     }
 

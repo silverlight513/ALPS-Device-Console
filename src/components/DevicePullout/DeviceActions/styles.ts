@@ -2,20 +2,20 @@ import styled, { css } from "styled-components"
 
 export { Heading } from '../DeviceHistory/styles'
 
-export type ActionTone = 'lock' | 'unlock' | 'release'
+export type ActionTone = 'danger' | 'accent' | 'neutral'
 
 const tones: Record<ActionTone, ReturnType<typeof css>> = {
-  lock: css`
+  danger: css`
     border-color: ${({ theme }) => theme.colors.danger};
     background: ${({ theme }) => theme.colors.danger};
     color: ${({ theme }) => theme.colors.accentContrast};
   `,
-  unlock: css`
+  accent: css`
     border-color: ${({ theme }) => theme.colors.accent};
     background: ${({ theme }) => theme.colors.accent};
     color: ${({ theme }) => theme.colors.accentContrast};
   `,
-  release: css`
+  neutral: css`
     border-color: ${({ theme }) => theme.colors.border};
     background: ${({ theme }) => theme.colors.surface};
     color: ${({ theme }) => theme.colors.textPrimary};

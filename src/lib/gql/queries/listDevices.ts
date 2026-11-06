@@ -8,10 +8,9 @@ export const DEVICE_STATES = [
   { id: 4, name: 'RELEASED' },
 ] as const;
 
-// Actions are matched by the state they move a device into, not by ID, which the spec says not to hardcode.
+// Only presentation keys off these (e.g. an action's button tone). Which actions exist comes from `listAvailableActions`.
 export const ACTIVE_STATE_ID = 2;
 export const LOCKED_STATE_ID = 3;
-export const RELEASED_STATE_ID = 4;
 
 export const stateName = (stateId: number) => DEVICE_STATES.find((state) => state.id === stateId)?.name ?? null;
 
