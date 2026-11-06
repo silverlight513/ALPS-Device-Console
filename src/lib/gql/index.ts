@@ -4,6 +4,7 @@ import { cacheKey, isFresh, sendRequest } from './store';
 import type { UseMutationResult, UseQueryResult } from './types';
 
 export { GqlProvider } from './GqlProvider';
+export { useGqlStore } from './context';
 export type { UseMutationResult, UseQueryResult } from './types';
 
 export class GraphQLRequestError extends Error {

@@ -144,6 +144,14 @@ export function createGqlStore() {
         write(key, undefined);
       }
     },
+
+    /** Empties the store: aborts every request and removes all entries and labels. */
+    clear() {
+      for (const running of inFlight.values()) running.controller.abort();
+      inFlight.clear();
+      keysByLabel.clear();
+      for (const key of [...entries.keys()]) write(key, undefined);
+    },
   };
 }
 

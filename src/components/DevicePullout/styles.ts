@@ -1,13 +1,21 @@
 import styled from "styled-components"
 
+// Above the app header (z-index 10), so the tenant switcher is covered too.
+export const Backdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  background: rgb(0 0 0 / 30%);
+`
+
 // The focus outline is off because the panel itself is only focused from code, so screen readers announce it.
 export const Panel = styled.aside`
   box-sizing: border-box;
   position: fixed;
-  top: ${({ theme }) => theme.layout.appHeaderHeight};
+  top: 0;
   right: 0;
   bottom: 0;
-  z-index: 5;
+  z-index: 12;
   width: min(400px, 100vw);
   overflow-y: auto;
   border-left: 1px solid ${({ theme }) => theme.colors.border};

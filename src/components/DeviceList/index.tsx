@@ -64,11 +64,10 @@ function DeviceList() {
     setSelectedDeviceId(null)
   }
 
+  // Leaves the selection alone. A row can be picked before the search debounce fires, and that
+  // search shouldn't close the pullout. If the row leaves the results, closing focuses the heading.
   const resetForNewFilters = () => {
-    // A row can be picked before the search debounce fires, which puts focus in the closing panel.
-    if (pulloutRef.current?.contains(document.activeElement)) headingRef.current?.focus()
     setPage(1)
-    setSelectedDeviceId(null)
   }
 
   const changeSearch = (nextSearch: string) => {
@@ -82,8 +81,10 @@ function DeviceList() {
     resetForNewFilters()
   }
 
-  // TODO: a superseded search keeps running. It can't overwrite anything, as the response goes to
-  // its own cache entry, but aborting it would save the request.
+  // NOTE: A search you've typed past isn't aborted. Its response lands in its own cache entry, which
+  // this hook no longer reads, so it can't overwrite the current results. Aborting it would save the
+  // request, but going back to that search would then fetch it again, and it could cancel a request
+  // another hook has joined.
   const { data, loading, errors, refetch } = useTenantQuery<ListDevicesData, ListDevicesVars>(LIST_DEVICES_QUERY, {
     variables: {
       ...deviceSearchVariables(search),
